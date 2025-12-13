@@ -24,24 +24,14 @@ st.set_page_config(
 # ======================================================
 @st.cache_resource(show_spinner=False)
 def load_model():
-    """
-    Loads the trained fraud detection model once
-    and caches it for future use.
-    """
-
     BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-    MODEL_PATH = os.path.join(
-        BASE_DIR,
-        "saved_model",
-        "fraud_detector_pipeline.pkl"
-    )
+    MODEL_PATH = os.path.join(BASE_DIR, "fraud_detector_pipeline.pkl")
 
     if not os.path.exists(MODEL_PATH):
-        raise FileNotFoundError(
-            f"Model file not found at: {MODEL_PATH}"
-        )
+        raise FileNotFoundError(f"Model file not found at: {MODEL_PATH}")
 
     return joblib.load(MODEL_PATH)
+
 
 
 # ======================================================
