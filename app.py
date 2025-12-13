@@ -1,22 +1,20 @@
-import streamlit as st
-import pandas as pd
-import joblib
 import os
-
-# ==============================
-# Resolve absolute model path
-# ==============================
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-MODEL_PATH = os.path.join(BASE_DIR, "saved_model", "fraud_detector_pipeline.pkl")
-
-# Debug (optional but helpful)
-# st.write("Base dir:", BASE_DIR)
-# st.write("Model exists:", os.path.exists(MODEL_PATH))
+import joblib
+import streamlit as st
 
 @st.cache_resource
 def load_model():
+    ROOT_DIR = os.getcwd()   # <- THIS IS THE KEY FIX
+    MODEL_PATH = os.path.join(
+        ROOT_DIR,
+        "saved_model",
+        "fraud_detector_pipeline.pkl"
+    )
+
     if not os.path.exists(MODEL_PATH):
-        raise FileNotFoundError(f"Model not found at {MODEL_PATH}")
+        st.error(f"Model not found at: {MODEL_PATH}")
+        st.stop()
+
     return joblib.load(MODEL_PATH)
 
 model = load_model()
