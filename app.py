@@ -1,110 +1,60 @@
-# -*- coding: utf-8 -*-
-
-"""
-Fraud Detection Web App
-Optimized for Streamlit Cloud deployment
-"""
-
-import os
-import joblib
-import pandas as pd
 import streamlit as st
+import pandas as pd
+import joblib
+import os
 
-# ======================================================
-# STREAMLIT PAGE CONFIG (MUST BE FIRST STREAMLIT CALL)
-# ======================================================
+# ================================
+# PAGE CONFIG
+# ================================
 st.set_page_config(
     page_title="Fraud Detection System",
-    page_icon="🚨",
+    page_icon="🛡️",
     layout="wide"
 )
 
-# ======================================================
-# MODEL LOADING WITH CACHING (CRITICAL FOR SPEED)
-# ======================================================
-@st.cache_resource(show_spinner=False)
+# ================================
+# LOAD MODEL SAFELY
+# ================================
+@st.cache_resource
 def load_model():
-    BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-    MODEL_PATH = os.path.join(BASE_DIR, "fraud_detector_pipeline.pkl")
+    base_dir = os.path.dirname(os.path.abspath(__file__))
+    model_path = os.path.join(
+        base_dir, "saved_model", "fraud_detector_pipeline.pkl"
+    )
 
-    if not os.path.exists(MODEL_PATH):
-        raise FileNotFoundError(f"Model file not found at: {MODEL_PATH}")
+    if not os.path.exists(model_path):
+        st.error(f"❌ Model not found at: {model_path}")
+        st.stop()
 
-    return joblib.load(MODEL_PATH)
+    return joblib.load(model_path)
 
 
-
-# ======================================================
-# LOAD MODEL WITH USER FEEDBACK
-# ======================================================
-with st.spinner("🔄 Initializing fraud detection engine..."):
+with st.spinner("🔄 Loading fraud detection engine..."):
     model = load_model()
 
-# ======================================================
-# APP TITLE & DESCRIPTION
-# ======================================================
-st.title("🚨 Fraud Detection System")
-st.markdown(
-    """
-    This application uses a **Machine Learning pipeline**
-    to detect whether a transaction is **fraudulent or legitimate**.
-
-    ✅ Optimized for real-time prediction  
-    ✅ Deployed using **Streamlit Cloud**  
-    """
-)
+# ================================
+# UI
+# ================================
+st.title("🛡️ Fraud Detection System")
+st.write("Predict whether a transaction is **Fraudulent** or **Legitimate**")
 
 st.divider()
 
-# ======================================================
-# USER INPUT SECTION
-# ======================================================
-st.subheader("🧾 Enter Transaction Details")
+# Example Inputs (adjust to your dataset)
+amount = st.number_input("Transaction Amount", min_value=0.0)
+old_balance = st.number_input("Old Balance", min_value=0.0)
+new_balance = st.number_input("New Balance", min_value=0.0)
 
-col1, col2 = st.columns(2)
-
-with col1:
-    amount = st.number_input("Transaction Amount", min_value=0.0, value=1000.0)
-    oldbalanceOrg = st.number_input("Old Balance (Sender)", min_value=0.0, value=5000.0)
-    newbalanceOrig = st.number_input("New Balance (Sender)", min_value=0.0, value=4000.0)
-
-with col2:
-    oldbalanceDest = st.number_input("Old Balance (Receiver)", min_value=0.0, value=3000.0)
-    newbalanceDest = st.number_input("New Balance (Receiver)", min_value=0.0, value=4000.0)
-    transaction_type = st.selectbox(
-        "Transaction Type",
-        ["CASH_OUT", "TRANSFER", "PAYMENT", "DEBIT"]
-    )
-
-# ======================================================
-# PREDICTION
-# ======================================================
-if st.button("🔍 Detect Fraud", use_container_width=True):
-
+if st.button("🔍 Detect Fraud"):
     input_df = pd.DataFrame([{
         "amount": amount,
-        "oldbalanceOrg": oldbalanceOrg,
-        "newbalanceOrig": newbalanceOrig,
-        "oldbalanceDest": oldbalanceDest,
-        "newbalanceDest": newbalanceDest,
-        "type": transaction_type
+        "oldbalanceOrg": old_balance,
+        "newbalanceOrig": new_balance
     }])
 
     prediction = model.predict(input_df)[0]
 
-    st.divider()
-
     if prediction == 1:
-        st.error("🚨 FRAUD DETECTED!", icon="⚠️")
-        st.markdown("### ❌ High Risk Transaction")
+        st.error("🚨 Fraudulent Transaction Detected!")
     else:
         st.success("✅ Transaction is Legitimate")
-        st.markdown("### 🟢 Low Risk Transaction")
-
-# ======================================================
-# FOOTER
-# ======================================================
-st.divider()
-st.caption(
-    "Built with ❤️ using Python, Machine Learning & Streamlit"
-)
