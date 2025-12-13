@@ -14,7 +14,13 @@ import joblib
 # =============================
 # Load saved fraud model pipeline
 # =============================
-model = joblib.load("saved_model/fraud_detector_pipeline.pkl")
+import os
+
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+MODEL_PATH = os.path.join(BASE_DIR, "saved_model", "fraud_detector_pipeline.pkl")
+
+model = joblib.load(MODEL_PATH)
+
 
 # =============================
 # Streamlit Page Config
